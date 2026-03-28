@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import { useSpeech } from "../hooks/useSpeech";
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
+import { activeGlobalAlerts } from "../data/mockData";
 
-const VoiceWidget = ({ data }) => {
+const VoiceWidget = () => {
   const { t, language } = useLanguage();
   const { listen, speak, isListening, stopSpeaking, stopListening } =
     useSpeech();
@@ -14,7 +15,7 @@ const VoiceWidget = ({ data }) => {
     setLastCommand(command);
     const lowerCmd = command.toLowerCase();
 
-    // Simple intent matching (simulating AI for now)
+    // Simple intent matching
     if (
       lowerCmd.includes("status") ||
       lowerCmd.includes("ஸ்டேட்டஸ்") ||
@@ -28,10 +29,10 @@ const VoiceWidget = ({ data }) => {
       lowerCmd.includes("எச்சரிக்கை") ||
       lowerCmd.includes("அலர்ட்")
     ) {
-      if (data.activeAlerts.length > 0) {
-        // Read the first critical alert
-        const alertCode = data.activeAlerts[0].code;
-        const resp = t(alertCode);
+      if (activeGlobalAlerts.length > 0) {
+        // Read the first alert machine and message
+        const firstAlert = activeGlobalAlerts[0];
+        const resp = `${t(firstAlert.machine)}: ${t(firstAlert.message)}`;
         setFeedback(resp);
         speak(resp, language);
       } else {

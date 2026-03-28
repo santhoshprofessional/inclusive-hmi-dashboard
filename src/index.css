@@ -5,19 +5,42 @@
   --bg-card: #1e293b;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  --accent-blue: #3b82f6;
-  --accent-amber: #f59e0b;
-  --accent-red: #ef4444;
-  --accent-green: #10b981;
+}
+
+/* 
+  Advanced Tailwind v4 Theme Inversion Setup
+  This cleanly flips the entire slate palette along with white/black when data-theme is 'light'.
+  This guarantees all components natively designed for dark mode seamlessly transition to a beautiful light variant!
+*/
+html[data-theme="light"] {
+  /* Swap base slate scale */
+  --color-slate-950: #f8fafc;
+  --color-slate-900: #f1f5f9;
+  --color-slate-800: #e2e8f0;
+  --color-slate-700: #cbd5e1;
+  --color-slate-600: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-400: #475569;
+  --color-slate-300: #334155;
+  --color-slate-200: #1e293b;
+  --color-slate-100: #0f172a;
+  --color-slate-50: #020617;
+
+  /* Swap absolute boundaries */
+  --color-white: #0f172a;
+  --color-black: #ffffff;
 }
 
 body {
-  background-color: var(--bg-dark);
-  color: var(--text-main);
+  background-color: var(--color-slate-900);
+  color: var(--color-slate-100);
   font-family: "Inter", system-ui, sans-serif;
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  transition:
+    background-color 0.5s ease,
+    color 0.5s ease;
 }
 
 /* Glassmorphism Utilities */
@@ -27,17 +50,13 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.5s ease;
 }
 
-.glass-button {
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  backdrop-filter: blur(4px);
-  transition: all 0.2s ease-in-out;
-}
-.glass-button:hover {
-  background: rgba(59, 130, 246, 0.4);
-  transform: translateY(-2px);
+html[data-theme="light"] .glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05); /* Softer shadow */
 }
 
 /* Base custom scrollbar */
@@ -45,12 +64,12 @@ body {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-dark);
+  background: var(--color-slate-900);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-card);
+  background: var(--color-slate-700);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: var(--color-slate-400);
 }

@@ -1,100 +1,110 @@
 import React, { useState, useEffect } from "react";
 import { LanguageProvider, useLanguage } from "./context/LanguageContext";
-import Header from "./components/Header";
-import SensorCard from "./components/SensorCard";
-import AlertsPanel from "./components/AlertsPanel";
-import VoiceWidget from "./components/VoiceWidget";
-import { mockSensorData } from "./data/mockData";
+import ControlPanelWidget from "./components/widgets/ControlPanelWidget";
+import ErrorMonitorWidget from "./components/widgets/ErrorMonitorWidget";
+import VoiceSystemWidget from "./components/widgets/VoiceSystemWidget";
+import DashboardWidget from "./components/widgets/DashboardWidget";
+import AccessibilityWidget from "./components/widgets/AccessibilityWidget";
+import SignLanguageWidget from "./components/widgets/SignLanguageWidget";
 
 const DashboardContent = () => {
   const { t } = useLanguage();
-  const [data, setData] = useState(mockSensorData);
 
-  // Simulating real-time data updates (just for visual effect)
+  // Shared State
+  const [status, setStatus] = useState("Running");
+  const [errorSimulated, setErrorSimulated] = useState(false);
+  const [theme, setTheme] = useState("dark");
+  const toggleTheme = () =>
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+
+  const [chartData, setChartData] = useState(
+    Array.from({ length: 20 }, (_, i) => ({
+      name: i,
+      temp: 60 + Math.random() * 5,
+      pressure: 30 + Math.random() * 2,
+      vibration: 10 + Math.random() * 1,
+    })),
+  );
+
+  // Apply theme to document
   useEffect(() => {
-    const interval = setInterval(() => {
-      setData((prev) => ({
-        ...prev,
-        metrics: {
-          ...prev.metrics,
-          temperature: {
-            ...prev.metrics.temperature,
-            value: (85 + (Math.random() * 2 - 1)).toFixed(1),
-          },
-          vibration: {
-            ...prev.metrics.vibration,
-            value: (12.4 + (Math.random() * 0.5 - 0.25)).toFixed(2),
-          },
-          power: {
-            ...prev.metrics.power,
-            value: (4.2 + (Math.random() * 0.2 - 0.1)).toFixed(2),
-          },
-        },
-      }));
-    }, 2000);
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  // Simulating real-time global dashboard updates
+  useEffect(() => {
+    let interval;
+    if (status === "Running" && !errorSimulated) {
+      interval = setInterval(() => {
+        setChartData((prev) => {
+          const newData = [...prev.slice(1)];
+          newData.push({
+            name: prev[prev.length - 1].name + 1,
+            temp: 60 + Math.random() * 5,
+            pressure: 30 + Math.random() * 2,
+            vibration: 10 + Math.random() * 1,
+          });
+          return newData;
+        });
+      }, 2000);
+    } else if (errorSimulated) {
+      // Simulate spiked data
+      interval = setInterval(() => {
+        setChartData((prev) => {
+          const newData = [...prev.slice(1)];
+          newData.push({
+            name: prev[prev.length - 1].name + 1,
+            temp: 90 + Math.random() * 10, // Spike
+            pressure: 45 + Math.random() * 5, // Spike
+            vibration: 25 + Math.random() * 5, // Spike
+          });
+          return newData;
+        });
+      }, 1000);
+    }
 
     return () => clearInterval(interval);
-  }, []);
+  }, [status, errorSimulated]);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-blue-500/30">
-      <Header />
-
-      <main className="container mx-auto px-4 py-8 md:px-8 max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-extrabold text-white mb-2">
-              {t("machineStatus")}
-            </h2>
-            <p className="text-slate-400 font-medium font-mono bg-slate-800 inline-block px-3 py-1 rounded-md border border-slate-700">
-              ID: {data.machineID}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-4xl">🏭</p>
+    <div className="min-h-screen font-sans selection:bg-blue-500/30 overflow-x-hidden">
+      <main className="container mx-auto px-4 py-8 max-w-[1400px]">
+        {/* Layout Title & Controls */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 px-2">
+          <h2 className="text-3xl font-extrabold tracking-tight uppercase flex items-center gap-3">
+            <span className="text-blue-500">⚙️</span>
+            Inclusive HMI Dashboard
+          </h2>
+          <div className="flex items-center gap-4 text-sm font-medium text-slate-400">
+            <span>Machine ID: M-001</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+            <span>Uptime: 145h</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+            <span className="text-green-400 border border-green-500/30 bg-green-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-green-400 animate-pulse"></span>
+              Live Synced
+            </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Sensor Metrics Area */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <SensorCard type="temperature" data={data.metrics.temperature} />
-              <SensorCard type="vibration" data={data.metrics.vibration} />
-              <SensorCard type="power" data={data.metrics.power} />
-            </div>
+        {/* 6-Block Premium Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+          {/* Row 1 */}
+          <ControlPanelWidget status={status} setStatus={setStatus} />
+          <ErrorMonitorWidget
+            status={status}
+            setStatus={setStatus}
+            errorSimulated={errorSimulated}
+            setErrorSimulated={setErrorSimulated}
+          />
+          <VoiceSystemWidget />
 
-            <div className="glass-panel p-6 rounded-2xl flex-1 border border-slate-700 mt-2">
-              <h3 className="text-xl font-bold mb-4 text-slate-300">
-                System Overview
-              </h3>
-              <div className="h-64 bg-slate-800/50 rounded-xl border border-slate-700/50 flex items-center justify-center flex-col gap-4">
-                <p className="text-slate-500 font-medium">
-                  IoT Data Visualization goes here
-                </p>
-                <div className="flex gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                  <span
-                    className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"
-                    style={{ animationDelay: "200ms" }}
-                  ></span>
-                  <span
-                    className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"
-                    style={{ animationDelay: "400ms" }}
-                  ></span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* AI Alerts Area */}
-          <div className="lg:col-span-1 h-full min-h-[500px]">
-            <AlertsPanel alerts={data.activeAlerts} />
-          </div>
+          {/* Row 2 */}
+          <DashboardWidget data={chartData} />
+          <AccessibilityWidget theme={theme} toggleTheme={toggleTheme} />
+          <SignLanguageWidget />
         </div>
       </main>
-
-      <VoiceWidget data={data} />
     </div>
   );
 };
